@@ -1,282 +1,282 @@
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Brawl Stars - Memória Ativada</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Brawl Stars Pro</title>
     <style>
-        :root { --rare: #00a2ff; --epic: #a332ff; --leg: #ffff00; --y: #ffcc00; --gas: rgba(139, 0, 255, 0.5); }
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; color: white; user-select: none; }
+        :root { 
+            --rare: #00a2ff; --epic: #a332ff; --leg: #ffff00; --mythic: #ff4444; --y: #ffcc00; 
+            --gas: rgba(139, 0, 255, 0.75); --bg: #1a2a6c;
+        }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Arial Black', sans-serif; color: white; user-select: none; touch-action: none; }
 
-        /* --- TELAS --- */
-        #end-screen { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
-        #end-title { font-size: 80px; font-style: italic; }
-        
-        #profile-display { position: absolute; top: 20px; left: 20px; z-index: 60; background: linear-gradient(135deg, #000, #222); padding: 12px 30px; border-radius: 15px 50px 50px 15px; border-left: 6px solid var(--rare); cursor: pointer; display: flex; align-items: center; gap: 15px; border-top: 1px solid #444; }
-        .card.selected-blue { border-color: var(--rare) !important; box-shadow: 0 0 20px var(--rare); background: #001a33; }
+        /* --- LOBBY DESIGN --- */
+        #lobby { position: fixed; inset: 0; z-index: 100; background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); background-size: 400% 400%; animation: gradientBG 15s ease infinite; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        @keyframes gradientBG { 0% {background-position: 0% 50%} 50% {background-position: 100% 50%} 100% {background-position: 0% 50%} }
 
-        #countdown { position: fixed; inset: 0; z-index: 300; display: none; align-items: center; justify-content: center; font-size: 180px; font-style: italic; font-weight: 900; }
-        .pop { animation: popAnim 0.8s ease-out; }
-        @keyframes popAnim { 0% { transform: scale(0.3); opacity:0; } 50% { transform: scale(1.2); opacity:1; } 100% { transform: scale(1); opacity:0; } }
+        #profile-card { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 50px; border: 3px solid #fff; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        #profile-card:hover { transform: scale(1.05); background: rgba(0,0,0,0.8); }
 
-        #lobby { position: fixed; inset: 0; z-index: 50; background: radial-gradient(circle, #1a2a6c, #000); display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .play-btn { padding: 25px 80px; font-size: 40px; background: var(--y); color: #000; border-radius: 20px; cursor: pointer; border: none; box-shadow: 0 8px 0 #947600; font-style: italic; }
-        .overlay { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; }
-        .window { background: #1a1a1a; padding: 30px; border-radius: 40px; width: 85%; max-height: 80vh; display: flex; flex-direction: column; border: 4px solid #333; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; overflow-y: auto; padding: 20px; background: #000; border-radius: 20px; }
-        .card { background: #222; border: 4px solid #444; border-radius: 15px; padding: 15px; cursor: pointer; text-align: center; }
+        .play-btn { padding: 25px 100px; font-size: 45px; background: linear-gradient(#ffcc00, #ff8800); color: #000; border-radius: 25px; border: none; box-shadow: 0 10px 0 #947600; font-style: italic; cursor: pointer; transition: 0.1s; }
+        .play-btn:active { transform: translateY(5px); box-shadow: 0 5px 0 #947600; }
 
-        /* --- ARENA --- */
+        /* --- MODAIS --- */
+        .modal { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .window { background: #222; width: 90%; max-height: 80vh; border-radius: 30px; border: 5px solid #444; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; overflow-y: auto; padding: 10px; }
+        .b-card { background: #333; border-radius: 20px; padding: 15px; text-align: center; border-bottom: 5px solid #000; transition: 0.2s; cursor: pointer; }
+        .b-card:active { transform: scale(0.9); }
+
+        /* --- JOGO --- */
         #game { display: none; }
-        #arena { width: 3000px; height: 3000px; background: #3e8e41; position: relative; background-image: radial-gradient(#2d6a2f 12%, transparent 13%); background-size: 60px 60px; }
-        .brawler { position: absolute; width: 65px; height: 65px; z-index: 10; }
-        .b-name { position: absolute; top: -50px; width: 160px; left: -47px; text-align: center; font-size: 14px; font-weight: bold; text-shadow: 2px 2px #000; }
-        .circle { width: 100%; height: 100%; border-radius: 50%; border: 4px solid #000; display: flex; align-items: center; justify-content: center; font-size: 35px; }
-        .hp { position: absolute; top: -25px; width: 100%; height: 10px; background: #000; border-radius: 5px; border: 1.5px solid #fff; overflow: hidden; }
-        .hp-in { height: 100%; background: #0f0; width: 100%; }
-        #gas { position: absolute; inset: 0; border: 0px solid var(--gas); pointer-events: none; z-index: 5; box-shadow: inset 0 0 120px 60px var(--gas); }
+        #arena { width: 3000px; height: 3000px; background: #3e8e41; position: relative; background-image: radial-gradient(rgba(0,0,0,0.2) 15%, transparent 16%); background-size: 80px 80px; will-change: transform; }
+        #gas { position: absolute; inset: 0; border: 0px solid var(--gas); pointer-events: none; z-index: 50; box-shadow: inset 0 0 150px 80px var(--gas); }
+        
+        /* MIRA */
+        .laser { position: absolute; height: 6px; background: rgba(255,255,255,0.3); border-radius: 10px; transform-origin: 0 50%; pointer-events: none; display: none; z-index: 40; border: 1px solid rgba(255,255,255,0.5); }
+
+        /* CONTAGEM */
+        #countdown { position: fixed; inset: 0; z-index: 1000; display: none; align-items: center; justify-content: center; pointer-events: none; }
+        .cnt { font-size: 200px; font-weight: 900; animation: pop 0.9s ease-out; text-shadow: 0 10px 0 #000; }
+        @keyframes pop { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+
+        /* CONTROLES */
+        .joy { position: fixed; bottom: 60px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); z-index: 600; }
+        .stick { position: absolute; top: 50%; left: 50%; width: 70px; height: 70px; background: #fff; border-radius: 50%; transform: translate(-50%, -50%); opacity: 0.6; }
     </style>
 </head>
 <body onclick="initAudio()">
 
     <div id="lobby">
-        <div id="profile-display" onclick="openMenu('win-profile')">
-            <div style="font-size: 40px;" id="p-icon-v">🤠</div>
+        <div id="profile-card" onclick="openModal('modal-profile')">
+            <div id="p-icon" style="font-size: 50px;">🤠</div>
             <div>
-                <div id="p-name-v">JOGADOR</div>
-                <div style="color:var(--y)">🏆 <span id="t-val">0</span></div>
+                <b id="p-name" style="font-size: 20px;">PLAYER</b><br>
+                <span style="color:var(--y)">🏆 <span id="p-trophies">0</span></span>
             </div>
         </div>
-        <div id="main-preview" style="font-size: 180px;">🤠</div>
-        <h1 id="main-b-name">SHELLY</h1>
-        <p id="main-b-type" style="color: var(--rare); font-size: 18px; margin-top: -20px;">ATAQUE: LEQUE</p>
+        <div id="brawler-preview" style="font-size: 200px; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5));">🤠</div>
+        <h1 id="brawler-name" style="font-size: 60px; margin: 10px 0; font-style: italic;">SHELLY</h1>
         <button class="play-btn" onclick="startSequence()">JOGAR</button>
-        <button onclick="openMenu('win-b')" style="margin-top:20px; color:white; background:none; border:2px solid #fff; border-radius:50px; padding:10px 40px; cursor:pointer;">BRAWLERS</button>
+        <button onclick="openModal('modal-brawlers')" style="margin-top: 20px; background: rgba(0,0,0,0.5); border: 2px solid #fff; color: white; padding: 10px 40px; border-radius: 50px; cursor: pointer;">BRAWLERS</button>
     </div>
 
-    <div id="countdown">3</div>
-
-    <div id="end-screen">
-        <div id="end-title">VITÓRIA!</div>
-        <div id="end-trophies">+10 Troféus</div>
-        <button class="play-btn" onclick="location.reload()" style="font-size:25px">VOLTAR AO LOBBY</button>
-    </div>
-
-    <div id="win-b" class="overlay">
+    <div id="modal-brawlers" class="modal">
         <div class="window">
-            <h2 style="text-align:center; color:var(--y)">SELECIONE SEU BRAWLER</h2>
+            <h2 style="text-align:center; color: var(--y)">MEUS BRAWLERS</h2>
             <div class="grid" id="b-grid"></div>
-            <button class="play-btn" style="font-size:20px; align-self:center; margin-top:20px;" onclick="closeAll()">PRONTO</button>
+            <button class="play-btn" style="font-size: 20px; margin-top: 20px;" onclick="closeModals()">FECHAR</button>
         </div>
     </div>
 
-    <div id="win-profile" class="overlay">
-        <div class="window" style="max-width:450px;">
-            <h2>EDITAR PERFIL</h2>
-            <input type="text" id="nick-in" placeholder="NICKNAME" maxlength="12" style="padding:15px; font-size:20px; width:90%; text-align:center;">
-            <div class="grid" style="grid-template-columns: repeat(4, 1fr); margin-top:20px;" id="icon-grid"></div>
-            <button class="play-btn" style="font-size:20px; margin-top:20px;" onclick="saveProfile()">SALVAR</button>
+    <div id="modal-profile" class="modal">
+        <div class="window" style="max-width: 400px;">
+            <h2 style="text-align:center;">EDITAR PERFIL</h2>
+            <input type="text" id="name-input" placeholder="NOME" style="width: 100%; padding: 15px; border-radius: 10px; border: none; font-size: 20px; text-align: center;">
+            <div class="grid" style="grid-template-columns: repeat(3, 1fr); margin-top: 15px;" id="icon-grid"></div>
+            <button class="play-btn" style="font-size: 20px; margin-top: 20px;" onclick="saveProfile()">SALVAR</button>
         </div>
     </div>
 
     <div id="game">
-        <div id="cam" style="position:absolute; inset:0; overflow:hidden;">
-            <div id="arena"><div id="gas"></div></div>
+        <div id="cam" style="position:fixed; inset:0; overflow:hidden;">
+            <div id="arena">
+                <div id="laser-line" class="laser"></div>
+                <div id="gas"></div>
+            </div>
         </div>
+        <div id="joy-move" class="joy" style="left: 60px;"><div class="stick" id="stick-move"></div></div>
+        <div id="joy-aim" class="joy" style="right: 60px;"><div class="stick" id="stick-aim"></div></div>
+        <div id="countdown"></div>
     </div>
 
     <script>
-        let AC, running=false, players=[], keys={}, gasSize=0;
+        let AC, running=false, players=[], gasSize=0;
+        let user = { n: localStorage.getItem('bs_n')||"VOCÊ", i: localStorage.getItem('bs_i')||"🤠", t: parseInt(localStorage.getItem('bs_t'))||0 };
+        let sel = { n: "Shelly", i: "🤠", type: "spread", color: "#00a2ff" };
 
-        // --- CARREGAR DADOS SALVOS ---
-        let user = { 
-            n: localStorage.getItem('bs_nick') || "VOCÊ", 
-            i: localStorage.getItem('bs_icon') || "🤠", 
-            t: parseInt(localStorage.getItem('br_t')) || 0 
-        };
-        let sel = JSON.parse(localStorage.getItem('bs_selected')) || { n: "Shelly", i: "🤠", type: "spread" };
+        const bData = [
+            {n:"Shelly", i:"🤠", t:"spread", c:"var(--rare)"}, {n:"Colt", i:"🔫", t:"burst", c:"var(--rare)"},
+            {n:"El Primo", i:"🥊", t:"burst", c:"var(--rare)"}, {n:"Poco", i:"🎸", t:"spread", c:"var(--rare)"},
+            {n:"Mortis", i:"🦇", t:"burst", c:"var(--mythic)"}, {n:"Tara", i:"🃏", t:"spread", c:"var(--mythic)"},
+            {n:"Leon", i:"🦎", t:"burst", c:"var(--leg)"}, {n:"Crow", i:"🐦", t:"burst", c:"var(--leg)"},
+            {n:"Spike", i:"🌵", t:"spread", c:"var(--leg)"}, {n:"Sandy", i:"⏳", t:"spread", c:"var(--leg)"}
+        ];
 
-        const rawNames = ["Shelly","Colt","Brock","El Primo","Poco","Rosa","Mortis","Tara","Gene","Max","Leon","Crow","Spike","Sandy","Amber","Meg","Surge","Moe","Kenji","Clancy"];
-        const bNames = [];
-        for(let i=0; i<98; i++) bNames.push(rawNames[i % rawNames.length] + (i >= rawNames.length ? " " + Math.ceil(i/rawNames.length) : ""));
-        const icons = ['🤠','🔫','🦅','🌵','🤖','🦇','🥊','🎸','🦎','🔨','🃏','🛠️','🧞','🏹','🧪','📦','💎','👑','🔥','🌊'];
-
-        // Atualizar Lobby com dados salvos
-        function updateLobbyUI() {
-            document.getElementById('t-val').innerText = user.t;
-            document.getElementById('p-name-v').innerText = user.n;
-            document.getElementById('p-icon-v').innerText = user.i;
-            document.getElementById('main-preview').innerText = sel.i;
-            document.getElementById('main-b-name').innerText = sel.n.toUpperCase();
-            document.getElementById('main-b-type').innerText = "ATAQUE: " + (sel.type === "spread" ? "LEQUE" : sel.type === "sniper" ? "PRECISÃO" : "RAJADA");
-            document.getElementById('nick-in').value = user.n;
-        }
-
-        function initAudio() { if(!AC) AC = new AudioContext(); }
+        // --- AUDIO ---
+        function initAudio() { if(!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); }
         function playS(f, d, t="sine", v=0.1) {
             if(!AC) return;
             let o = AC.createOscillator(), g = AC.createGain();
-            o.type = t; o.frequency.setValueAtTime(f, AC.currentTime);
-            o.frequency.exponentialRampToValueAtTime(10, AC.currentTime + d);
+            o.type = t; o.frequency.value = f;
             g.gain.setValueAtTime(v, AC.currentTime);
             g.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime + d);
-            o.connect(g); g.connect(AC.destination); o.start(); o.stop(AC.currentTime + d);
+            o.connect(g); g.connect(AC.destination);
+            o.start(); o.stop(AC.currentTime + d);
         }
 
-        // --- INTERFACE ---
-        const bG = document.getElementById('b-grid');
-        bNames.forEach((n, i) => {
-            const types = ["spread", "sniper", "burst"];
-            const type = types[i % 3];
-            const card = document.createElement('div');
-            card.className = `card ${['r-rare','r-epic','r-leg'][i%3]}`;
-            card.innerHTML = `<div style="font-size:40px">${icons[i%icons.length]}</div><small>${n}</small>`;
-            card.onclick = () => {
-                playS(600, 0.1, "square");
-                sel = { n, i: icons[i%icons.length], type };
-                localStorage.setItem('bs_selected', JSON.stringify(sel)); // SALVAR BRAWLER
-                updateLobbyUI();
-                closeAll();
-            };
-            bG.appendChild(card);
+        // --- UI LOGIC ---
+        function openModal(id) { playS(500,0.1); document.getElementById(id).style.display='flex'; }
+        function closeModals() { document.querySelectorAll('.modal').forEach(m=>m.style.display='none'); }
+
+        const bGrid = document.getElementById('b-grid');
+        bData.forEach(b => {
+            const d = document.createElement('div'); d.className = 'b-card';
+            d.style.borderColor = b.c;
+            d.innerHTML = `<div style="font-size:50px">${b.i}</div><b style="color:${b.c}">${b.n}</b>`;
+            d.onclick = () => { playS(600,0.1); sel=b; updateUI(); closeModals(); };
+            bGrid.appendChild(d);
         });
 
-        const iG = document.getElementById('icon-grid');
-        icons.forEach(icon => {
-            const d = document.createElement('div'); d.className='card'; d.innerText=icon; d.style.fontSize="30px";
-            if(icon === user.i) d.classList.add('selected-blue');
-            d.onclick = function() {
-                playS(900, 0.1, "sine", 0.2);
-                document.querySelectorAll('#icon-grid .card').forEach(c => c.classList.remove('selected-blue'));
-                this.classList.add('selected-blue');
-                user.i = icon;
-                localStorage.setItem('bs_icon', icon); // SALVAR ÍCONE
-            };
-            iG.appendChild(d);
+        const iGrid = document.getElementById('icon-grid');
+        ["🤠","🤖","💀","⭐","🔥","🃏"].forEach(i => {
+            const d = document.createElement('div'); d.className = 'b-card'; d.innerHTML = i;
+            d.onclick = () => { playS(800,0.1); user.i = i; };
+            iGrid.appendChild(d);
         });
 
-        function openMenu(id) { playS(400,0.1); document.getElementById(id).style.display='flex'; }
-        function closeAll() { document.querySelectorAll('.overlay').forEach(o=>o.style.display='none'); }
-        
         function saveProfile() {
-            user.n = document.getElementById('nick-in').value || "VOCÊ";
-            localStorage.setItem('bs_nick', user.n); // SALVAR NICK
-            updateLobbyUI();
-            closeAll();
+            user.n = document.getElementById('name-input').value || user.n;
+            localStorage.setItem('bs_n', user.n);
+            localStorage.setItem('bs_i', user.i);
+            updateUI(); closeModals();
+        }
+
+        function updateUI() {
+            document.getElementById('p-name').innerText = user.n;
+            document.getElementById('p-icon').innerText = user.i;
+            document.getElementById('p-trophies').innerText = user.t;
+            document.getElementById('brawler-preview').innerText = sel.i;
+            document.getElementById('brawler-name').innerText = sel.n.toUpperCase();
         }
 
         // --- GAMEPLAY ---
-        function startSequence() {
-            initAudio();
-            document.getElementById('lobby').style.display='none';
-            const cd = document.getElementById('countdown');
-            cd.style.display='flex';
-            const s = ["3","2","1","BRAWL!"];
-            s.forEach((t, i) => {
-                setTimeout(() => {
-                    cd.innerText = t; cd.className = "pop";
-                    playS(300 + (i*100), 0.4, t==="BRAWL!"?"sawtooth":"square", 0.2);
-                    setTimeout(()=>cd.className="", 900);
-                    if(t==="BRAWL!") setTimeout(()=>{ cd.style.display='none'; startGame(); }, 800);
-                }, i*1000);
+        let moveInput = {x:0, y:0}, aimAng = null;
+        function setupJoy(id, stickId, isAim) {
+            const area = document.getElementById(id);
+            const stick = document.getElementById(stickId);
+            let active = false;
+            const handle = (e) => {
+                if(!active) return;
+                const rect = area.getBoundingClientRect();
+                const t = e.touches ? e.touches[0] : e;
+                const dx = t.clientX - (rect.left + 75), dy = t.clientY - (rect.top + 75);
+                const dist = Math.min(65, Math.hypot(dx, dy));
+                const ang = Math.atan2(dy, dx);
+                stick.style.transform = `translate(calc(-50% + ${Math.cos(ang)*dist}px), calc(-50% + ${Math.sin(ang)*dist}px))`;
+                if(isAim) {
+                    aimAng = ang;
+                    const laser = document.getElementById('laser-line');
+                    laser.style.display = dist > 20 ? 'block' : 'none';
+                    laser.style.left = (players[0].x + 35) + 'px';
+                    laser.style.top = (players[0].y + 35) + 'px';
+                    laser.style.transform = `rotate(${ang}rad) scaleX(200)`;
+                } else {
+                    moveInput = {x: (Math.cos(ang)*dist)/65, y: (Math.sin(ang)*dist)/65};
+                }
+            };
+            area.addEventListener('touchstart', (e) => { active=true; handle(e); });
+            area.addEventListener('mousedown', (e) => { active=true; handle(e); });
+            window.addEventListener('mousemove', handle);
+            window.addEventListener('touchmove', handle);
+            window.addEventListener('mouseup', () => { 
+                if(isAim && active && aimAng !== null) { attack(players[0], aimAng); document.getElementById('laser-line').style.display='none'; }
+                active=false; stick.style.transform='translate(-50%,-50%)'; if(!isAim) moveInput={x:0, y:0};
+            });
+            window.addEventListener('touchend', () => { 
+                if(isAim && active && aimAng !== null) { attack(players[0], aimAng); document.getElementById('laser-line').style.display='none'; }
+                active=false; stick.style.transform='translate(-50%,-50%)'; if(!isAim) moveInput={x:0, y:0};
             });
         }
 
-        function spawn(name, icon, x, y, isBot, type) {
-            const el = document.createElement('div'); el.className='brawler';
-            el.innerHTML = `<div class="b-name" style="color:${isBot?'red':'#0f0'}">${name}</div><div class="hp"><div class="hp-in"></div></div><div class="circle" style="background:${isBot?'#800':'#006eff'}">${icon}</div>`;
-            document.getElementById('arena').appendChild(el);
-            return { name, x, y, hp:5000, el, isBot, vx:(Math.random()-0.5)*6, vy:(Math.random()-0.5)*6, lastA:0, type };
+        function startSequence() {
+            initAudio();
+            document.getElementById('lobby').style.display = 'none';
+            document.getElementById('game').style.display = 'block';
+            const cd = document.getElementById('countdown');
+            cd.style.display = 'flex';
+            const s = ["3","2","1","BRAWL!"];
+            s.forEach((t, i) => {
+                setTimeout(() => {
+                    cd.innerHTML = `<div class="cnt" style="color:${i===3?'var(--y)':'#fff'}">${t}</div>`;
+                    playS(400 + (i*100), 0.3, "square");
+                    if(i === 3) setTimeout(() => { cd.style.display='none'; startGame(); }, 800);
+                }, i * 1000);
+            });
         }
 
         function startGame() {
-            document.getElementById('game').style.display='block';
-            players = [spawn(user.n, sel.i, 1500, 1500, false, sel.type)];
-            for(let i=0; i<9; i++) {
-                const bType = ["spread", "sniper", "burst"][Math.floor(Math.random()*3)];
-                players.push(spawn(bNames[Math.floor(Math.random()*bNames.length)], icons[i%icons.length], Math.random()*2000+500, Math.random()*2000+500, true, bType));
-            }
+            players = [spawn(user.n, sel.i, 1500, 1500, false, sel.type, "#2980b9")];
+            for(let i=0; i<7; i++) players.push(spawn("BOT "+(i+1), bData[i%bData.length].i, Math.random()*2000+500, Math.random()*2000+500, true, "spread", "#c0392b"));
+            setupJoy('joy-move', 'stick-move', false);
+            setupJoy('joy-aim', 'stick-aim', true);
             running = true; loop();
         }
 
-        function fireBullet(p, ang, speed=30, distMax=800) {
-            playS(p.isBot?150:1100, 0.15, "sawtooth", 0.04);
-            const b = document.createElement('div'); 
-            b.style.cssText=`position:absolute; width:16px; height:16px; border-radius:50%; background:${p.isBot?'#fff':'#ff0'}; z-index:100; box-shadow: 0 0 10px ${p.isBot?'#fff':'#ff0'};`;
-            let bx=p.x+24, by=p.y+24, d=0; 
-            document.getElementById('arena').appendChild(b);
-            const iv = setInterval(() => {
-                bx += Math.cos(ang)*speed; by += Math.sin(ang)*speed; d+=speed;
-                b.style.left=bx+'px'; b.style.top=by+'px';
-                players.forEach(t => { 
-                    if(t!==p && t.hp>0 && Math.hypot(bx-(t.x+32), by-(t.y+32))<40){ 
-                        t.hp-=1000; d=9999; 
-                    }
-                });
-                if(d>distMax){ clearInterval(iv); b.remove(); }
-            }, 20);
+        function spawn(n, i, x, y, bot, type, color) {
+            const el = document.createElement('div'); el.className='brawler';
+            el.style.cssText = `position:absolute; width:70px; height:70px; z-index:10;`;
+            el.innerHTML = `<div style="position:absolute;top:-25px;width:100%;height:10px;background:#000;border:2px solid #fff;border-radius:5px;overflow:hidden;"><div class="hp-in" style="height:100%;background:#0f0;width:100%"></div></div><div class="circle" style="background:${color}">${i}</div><small style="display:block;text-align:center;">${n}</small>`;
+            document.getElementById('arena').appendChild(el);
+            return { x, y, hp:5000, el, bot, type, lastA:0 };
         }
 
         function attack(p, ang) {
-            if(Date.now() - p.lastA < 1000) return; 
+            if(Date.now() - p.lastA < 800) return;
             p.lastA = Date.now();
-            if(p.type === "spread") {
-                [ang-0.25, ang, ang+0.25].forEach(a => fireBullet(p, a, 25, 500));
-            } else if(p.type === "burst") {
-                fireBullet(p, ang, 35, 700);
-                setTimeout(() => fireBullet(p, ang, 35, 700), 150);
-                setTimeout(() => fireBullet(p, ang, 35, 700), 300);
-            } else {
-                fireBullet(p, ang, 45, 950);
-            }
+            playS(p.bot?150:1200, 0.1, "sawtooth", 0.05);
+            const bCount = p.type === "spread" ? 3 : 1;
+            for(let i=0; i<bCount; i++) fireBullet(p, ang + (i - (bCount-1)/2)*0.25);
+        }
+
+        function fireBullet(p, ang) {
+            const b = document.createElement('div');
+            b.style.cssText = `position:absolute; width:18px; height:18px; border-radius:50%; background:${p.bot?'#fff':'#ff0'}; box-shadow:0 0 10px #ff0; left:${p.x+26}px; top:${p.y+26}px; z-index:45;`;
+            document.getElementById('arena').appendChild(b);
+            let d=0, bx=p.x+26, by=p.y+26;
+            const iv = setInterval(() => {
+                bx += Math.cos(ang)*30; by += Math.sin(ang)*30; d+=30;
+                b.style.left = bx+'px'; b.style.top = by+'px';
+                players.forEach(t => {
+                    if(t!==p && t.hp>0 && Math.hypot(bx-(t.x+35), by-(t.y+35)) < 40) {
+                        t.hp -= 1000; d=999; playS(200,0.05,"sine",0.2);
+                    }
+                });
+                if(d>800) { clearInterval(iv); b.remove(); }
+            }, 16);
         }
 
         function loop() {
             if(!running) return;
             const p = players[0];
-            const speed = 10;
-            gasSize += 0.4; document.getElementById('gas').style.borderWidth = gasSize + 'px';
-            
-            if(keys['w'] || keys['arrowup']) p.y -= speed;
-            if(keys['s'] || keys['arrowdown']) p.y += speed;
-            if(keys['a'] || keys['arrowleft']) p.x -= speed;
-            if(keys['d'] || keys['arrowright']) p.x += speed;
+            gasSize += 0.5;
+            document.getElementById('gas').style.borderWidth = gasSize + 'px';
 
             players.forEach(b => {
                 if(b.hp <= 0) { b.el.style.display='none'; return; }
-                if(b.x < gasSize || b.x > 3000-gasSize || b.y < gasSize || b.y > 3000-gasSize) b.hp -= 30;
-                if(b.isBot) {
-                    b.x += b.vx; b.y += b.vy;
-                    if(b.x < gasSize + 150 || b.x > 2850-gasSize) b.vx *= -1;
-                    if(b.y < gasSize + 150 || b.y > 2850-gasSize) b.vy *= -1;
-                    if(Math.hypot(p.x-b.x, p.y-b.y) < 600 && Math.random() < 0.02) attack(b, Math.atan2(p.y-b.y, p.x-b.x));
+                if(!b.bot) {
+                    b.x += moveInput.x * 13; b.y += moveInput.y * 13;
+                } else {
+                    const dist = Math.hypot(p.x-b.x, p.y-b.y);
+                    if(dist < 600) {
+                        b.x += (p.x > b.x ? 1 : -1) * 6; b.y += (p.y > b.y ? 1 : -1) * 6;
+                        if(Math.random() < 0.02) attack(b, Math.atan2(p.y-b.y, p.x-b.x));
+                    }
                 }
-                b.el.style.left = b.x+'px'; b.el.style.top = b.y+'px';
+                if(b.x < gasSize || b.x > 3000-gasSize || b.y < gasSize || b.y > 3000-gasSize) b.hp -= 30;
+                b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
                 b.el.querySelector('.hp-in').style.width = (b.hp/5000*100)+'%';
             });
 
-            if(p.hp <= 0) { running=false; showEnd(false); }
-            else if(players.filter(v=>v.hp>0).length === 1) { running=false; showEnd(true); }
-            else {
-                document.getElementById('arena').style.transform = `translate(${window.innerWidth/2-p.x-32}px, ${window.innerHeight/2-p.y-32}px)`;
-                requestAnimationFrame(loop);
-            }
+            document.getElementById('arena').style.transform = `translate(${window.innerWidth/2 - p.x - 35}px, ${window.innerHeight/2 - p.y - 35}px)`;
+
+            if(p.hp <= 0) { alert("DERROTA!"); location.reload(); }
+            else if(players.filter(v=>v.hp>0).length === 1) { user.t += 10; localStorage.setItem('bs_t', user.t); alert("VITÓRIA!"); location.reload(); }
+            else requestAnimationFrame(loop);
         }
 
-        function showEnd(win) {
-            const screen = document.getElementById('end-screen');
-            screen.style.display = 'flex';
-            document.getElementById('end-title').innerText = win ? "VITÓRIA!" : "DERROTA...";
-            document.getElementById('end-title').style.color = win ? "var(--y)" : "red";
-            document.getElementById('end-trophies').innerText = win ? "+10 Troféus" : "-5 Troféus";
-            user.t = win ? user.t + 10 : Math.max(0, user.t - 5);
-            localStorage.setItem('br_t', user.t);
-        }
-
-        window.onkeydown = e => keys[e.key.toLowerCase()] = true;
-        window.onkeyup = e => keys[e.key.toLowerCase()] = false;
-        window.onmousedown = (e) => { if(running) attack(players[0], Math.atan2(e.clientY-window.innerHeight/2, e.clientX-window.innerWidth/2)); };
-        
-        // Inicializar UI
-        updateLobbyUI();
+        updateUI();
     </script>
 </body>
 </html>
